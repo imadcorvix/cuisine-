@@ -182,7 +182,20 @@
   }
   .hero-bg{
     position:absolute; inset:0;
-    background:url('assets/hero.jpg') center 38% / cover no-repeat;
+    background-image:url('assets/hero.jpg');
+    background-size:cover;
+    background-repeat:no-repeat;
+    background-position:center 38%;
+  }
+  @media (max-width:640px){
+    .hero-bg{
+      background-size:145% auto;
+      animation:heroPan 16s ease-in-out infinite alternate;
+    }
+  }
+  @keyframes heroPan{
+    0%{ background-position:left 38%; }
+    100%{ background-position:right 38%; }
   }
   .hero-bg::after{
     content:'';

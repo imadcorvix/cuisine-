@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Massif Cuisines — Administration</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@460;600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<style>
+  :root{
+    --bg:#F2EEE6; --surface:#fff; --ink:#201E1F; --ink-soft:#58524B; --ink-faint:#8A837A;
+    --red:#C63141; --red-deep:#9E2532; --line:rgba(32,30,31,0.14);
+    --green:#2E7D4F; --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+  }
+  .wrap{ max-width:960px; margin:0 auto; padding:40px 24px 100px; }
+  h1{ font-family:'Fraunces',serif; font-weight:600; font-size:28px; margin:0 0 4px; }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom:28px; }
+  .brand img{ height:30px; }
+  .sub{ color:var(--ink-faint); font-size:14px; margin-bottom:36px; }
+
+  /* ---- PIN screen ---- */
+  #pinScreen{
+    max-width:360px; margin:120px auto; text-align:center;
+    background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:40px 32px;
+  }
+  #pinScreen img{ height:32px; margin-bottom:18px; }
+  #pinScreen h2{ font-family:'Fraunces',serif; font-size:22px; margin:0 0 6px; }
+  #pinScreen p{ color:var(--ink-faint); font-size:13.5px; margin:0 0 22px; }
+  #pinInput{
+    width:100%; padding:13px 14px; font-size:16px; letter-spacing:.3em; text-align:center;
+    border:1px solid var(--line); border-radius:10px; margin-bottom:14px; background:#fff; color:var(--ink);
+  }
+  #pinError{ color:var(--red); font-size:13px; min-height:18px; margin-bottom:8px; }
+
+  button{
+    font-family:'Work Sans', sans-serif; cursor:pointer; border:none;
+  }
+  .btn{
+    background:var(--ink); color:#fff; padding:12px 22px; border-radius:10px;
+    font-size:14px; font-weight:600; width:100%;
+    transition:background .2s ease;
+  }
+  .btn:hover{ background:var(--red); }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  .btn-outline{
+    background:transparent; border:1px solid var(--line); color:var(--ink-soft);
+    padding:9px 16px; border-radius:8px; font-size:13px; font-weight:500;
+  }
+  .btn-outline:hover{ border-color:var(--red); color:var(--red); }
+  .btn-danger{ color:var(--red); }
+  .btn-danger:hover{ background:var(--red); color:#fff; }
+
+  /* ---- dashboard ---- */
+  #dashboard{ display:none; }
+
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:28px; margin-bottom:28px;
+  }
+  .card h2{ font-family:'Fraunces',serif; font-weight:600; font-size:19px; margin:0 0 18px; }
+
+  label{ display:block; font-size:13px; font-weight:600; color:var(--ink-soft); margin-bottom:6px; }
+  .field{ margin-bottom:18px; }
+  input[type=text], input[type=number], select, input[type=file]{
+    width:100%; padding:11px 13px; border:1px solid var(--line); border-radius:9px;
+    font-size:14px; background:#fff; color:var(--ink); font-family:inherit;
+  }
+  .form-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:600px){ .form-row{grid-template-columns:1fr;} }
+
+  #formMsg{ font-size:13.5px; margin-top:12px; min-height:18px; }
+  #formMsg.ok{ color:var(--green); }
+  #formMsg.err{ color:var(--red); }
+
+  .item-row{
+    display:flex; align-items:center; gap:16px; padding:14px 0; border-bottom:1px solid var(--line);
+  }
+  .item-row:last-child{ border-bottom:none; }
+  .item-thumb{ width:64px; height:64px; border-radius:10px; object-fit:cover; background:var(--bg); flex-shrink:0; }
+  .item-info{ flex:1; min-width:0; }
+  .item-title{ font-weight:600; font-size:14.5px; margin-bottom:3px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .item-cat{ font-size:12.5px; color:var(--ink-faint); }
+  .item-actions{ display:flex; gap:8px; flex-shrink:0; }
+
+  .empty-state{ color:var(--ink-faint); font-size:14px; text-align:center; padding:30px 0; }
+
+  .pin-hint{
+    background:#FFF7E8; border:1px solid #F0DDA6; color:#7A5E15;
+    padding:12px 16px; border-radius:10px; font-size:12.5px; line-height:1.5; margin-bottom:24px;
+  }
+</style>
+</head>
+<body>
+
+<div id="pinScreen">
+  <img src="assets/icon.png" alt="">
+  <h2>Espace Administration</h2>
+  <p>Entrez le code PIN pour gérer les réalisations.</p>
+  <input type="password" id="pinInput" inputmode="numeric" placeholder="••••" maxlength="8">
+  <p id="pinError"></p>
+  <button class="btn" id="pinSubmit">Déverrouiller</button>
+</div>
+
+<div class="wrap" id="dashboard">
+  <div class="brand"><img src="assets/icon.png" alt="">
+    <div>
+      <h1>Administration — Massif Cuisines</h1>
+      <div class="sub">Ajoutez, modifiez ou supprimez les photos de réalisations affichées sur le site.</div>
+    </div>
+  </div>
+
+  <div class="pin-hint">
+    Cette page n'est protégée que par un code PIN local, pas par une vraie authentification. Ne partagez ce lien qu'avec les personnes de confiance qui gèrent le site.
+  </div>
+
+  <div class="card">
+    <h2>Ajouter une réalisation</h2>
+    <form id="addForm">
+      <div class="form-row">
+        <div class="field">
+          <label for="fTitle">Titre (optionnel)</label>
+          <input type="text" id="fTitle" placeholder="Ex : Cuisine moderne — Oran">
+        </div>
+        <div class="field">
+          <label for="fCategory">Catégorie</label>
+          <select id="fCategory" required></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="fImage">Photo</label>
+          <input type="file" id="fImage" accept="image/*" required>
+        </div>
+        <div class="field">
+          <label for="fSort">Ordre d'affichage (optionnel)</label>
+          <input type="number" id="fSort" placeholder="0" value="0">
+        </div>
+      </div>
+      <button class="btn" id="submitBtn" type="submit">Publier la photo</button>
+      <p id="formMsg"></p>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Réalisations publiées</h2>
+    <div id="itemsList"><p class="empty-state">Chargement…</p></div>
+  </div>
+</div>
+
+<script>
+/* ---------------- CONFIG ---------------- */
+const SUPABASE_URL = 'https://jcbzxhmfwbqkzcbuoruc.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_KbaHv5-xEyzNA-2JS-V91g_r5bB-r-7';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Change this PIN before sharing the link. This is a UI gate only, not real security —
+// see supabase-setup.sql notes about locking writes down further if that ever matters.
+const ADMIN_PIN = '2026';
+
+const CATEGORIES = [
+  { value:'cuisines',        label:'Les Cuisines' },
+  { value:'portes-entree',   label:"Portes d'Entrée" },
+  { value:'portes-chambres', label:'Portes de Chambres' },
+  { value:'armoires',        label:'Les Armoires' },
+  { value:'dressings',       label:'Les Dressings' },
+  { value:'bureaux',         label:'Les Bureaux' },
+  { value:'salle-de-bain',   label:'Meubles de Salle de Bain' },
+];
+
+/* ---------------- PIN GATE ---------------- */
+const pinScreen = document.getElementById('pinScreen');
+const dashboard = document.getElementById('dashboard');
+const pinInput = document.getElementById('pinInput');
+const pinError = document.getElementById('pinError');
+
+function unlock(){
+  pinScreen.style.display = 'none';
+  dashboard.style.display = 'block';
+  sessionStorage.setItem('massif_admin_unlocked', '1');
+  init();
+}
+document.getElementById('pinSubmit').addEventListener('click', tryUnlock);
+pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+function tryUnlock(){
+  if (pinInput.value === ADMIN_PIN){ unlock(); }
+  else{ pinError.textContent = 'Code incorrect.'; pinInput.value=''; pinInput.focus(); }
+}
+if (sessionStorage.getItem('massif_admin_unlocked') === '1'){ unlock(); }
+
+/* ---------------- INIT ---------------- */
+function init(){
+  const sel = document.getElementById('fCategory');
+  sel.innerHTML = CATEGORIES.map(c => `<option value="${c.value}">${c.label}</option>`).join('');
+  loadItems();
+}
+
+/* ---------------- ADD ITEM ---------------- */
+const addForm = document.getElementById('addForm');
+const formMsg = document.getElementById('formMsg');
+const submitBtn = document.getElementById('submitBtn');
+
+addForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const title = document.getElementById('fTitle').value.trim();
+  const category = document.getElementById('fCategory').value;
+  const sortOrder = parseInt(document.getElementById('fSort').value || '0', 10);
+  const file = document.getElementById('fImage').files[0];
+
+  if (!file){ setMsg('Choisissez une photo.', 'err'); return; }
+
+  submitBtn.disabled = true;
+  setMsg('Envoi en cours…', '');
+
+  try{
+    const ext = file.name.split('.').pop();
+    const path = `${category}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+
+    const { error: uploadError } = await sb.storage.from('gallery').upload(path, file, {
+      cacheControl: '3600', upsert:false
+    });
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = sb.storage.from('gallery').getPublicUrl(path);
+    const image_url = urlData.publicUrl;
+
+    const { error: insertError } = await sb.from('gallery_items').insert({
+      title: title || null, category, image_url, sort_order: sortOrder
+    });
+    if (insertError) throw insertError;
+
+    setMsg('Photo publiée avec succès.', 'ok');
+    addForm.reset();
+    document.getElementById('fSort').value = 0;
+    loadItems();
+  }catch(err){
+    console.error(err);
+    setMsg("Échec de l'envoi : " + (err.message || 'erreur inconnue'), 'err');
+  }finally{
+    submitBtn.disabled = false;
+  }
+});
+
+function setMsg(text, kind){
+  formMsg.textContent = text;
+  formMsg.className = kind || '';
+}
+
+/* ---------------- LIST + DELETE ---------------- */
+const itemsList = document.getElementById('itemsList');
+
+async function loadItems(){
+  itemsList.innerHTML = '<p class="empty-state">Chargement…</p>';
+  try{
+    const { data, error } = await sb.from('gallery_items')
+      .select('*')
+      .order('category', { ascending:true })
+      .order('sort_order', { ascending:true });
+    if (error) throw error;
+
+    if (!data || data.length === 0){
+      itemsList.innerHTML = '<p class="empty-state">Aucune réalisation publiée pour le moment.</p>';
+      return;
+    }
+
+    const labelOf = v => (CATEGORIES.find(c => c.value === v) || {}).label || v;
+
+    itemsList.innerHTML = data.map(item => `
+      <div class="item-row" data-id="${item.id}">
+        <img class="item-thumb" src="${item.image_url}" alt="">
+        <div class="item-info">
+          <div class="item-title">${item.title || '(sans titre)'}</div>
+          <div class="item-cat">${labelOf(item.category)} · ordre ${item.sort_order ?? 0}</div>
+        </div>
+        <div class="item-actions">
+          <button class="btn-outline btn-danger" onclick="deleteItem('${item.id}')">Supprimer</button>
+        </div>
+      </div>
+    `).join('');
+  }catch(err){
+    console.error(err);
+    itemsList.innerHTML = '<p class="empty-state">Impossible de charger les réalisations.</p>';
+  }
+}
+
+async function deleteItem(id){
+  if (!confirm('Supprimer cette photo définitivement ?')) return;
+  try{
+    const { error } = await sb.from('gallery_items').delete().eq('id', id);
+    if (error) throw error;
+    loadItems();
+  }catch(err){
+    alert("Échec de la suppression : " + (err.message || 'erreur inconnue'));
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Massif Cuisines — Menuiserie en bois massif, sur mesure</title>
+<meta name="description" content="Cuisines, portes, armoires, dressings, bureaux et meubles de salle de bain en bois massif, fabriqués sur mesure.">
+<link rel="icon" href="assets/icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340;0,9..144,460;0,9..144,600;1,9..144,340;1,9..144,460&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<style>
+  :root{
+    --bg: #F2EEE6;
+    --bg-alt: #E8E1D2;
+    --surface: #FFFFFF;
+    --ink: #201E1F;
+    --ink-soft: #58524B;
+    --ink-faint: #8A837A;
+    --red: #C63141;
+    --red-deep: #9E2532;
+    --line: rgba(32,30,31,0.12);
+    --shadow: 0 20px 50px rgba(32,30,31,0.14);
+    --radius: 22px;
+    --max: 1200px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  img{max-width:100%; display:block;}
+  a{color:inherit; text-decoration:none;}
+
+  .wrap{max-width:var(--max); margin:0 auto; padding:0 32px;}
+  @media (max-width:640px){ .wrap{padding:0 20px;} }
+
+  .eyebrow{
+    font-family:'Work Sans', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    font-weight:460;
+    margin:0;
+    line-height:1.05;
+  }
+
+  em{font-style:italic; font-weight:340;}
+
+  :focus-visible{
+    outline:2px solid var(--red);
+    outline-offset:3px;
+  }
+
+  /* ---------- NAV ---------- */
+  header.site-nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    padding:22px 0;
+    transition:background .35s ease, padding .35s ease, box-shadow .35s ease;
+  }
+  header.site-nav.scrolled{
+    background:rgba(242,238,230,0.92);
+    backdrop-filter:blur(10px);
+    padding:14px 0;
+    box-shadow:0 1px 0 var(--line);
+  }
+  .nav-inner{
+    display:flex; align-items:center; justify-content:space-between;
+    max-width:var(--max); margin:0 auto; padding:0 32px;
+  }
+  @media (max-width:640px){ .nav-inner{padding:0 20px;} }
+
+  .logo{display:flex; align-items:center; gap:10px;}
+  .logo img{height:34px; width:auto;}
+  .logo-word{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:19px;
+    letter-spacing:.01em;
+    color:var(--ink);
+    display:flex; align-items:baseline; gap:6px;
+  }
+  .site-nav:not(.scrolled) .logo-word{ color:#fff; }
+  .logo-accent{
+    background:var(--red);
+    color:#fff !important;
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:12px;
+    letter-spacing:.02em;
+    padding:2px 8px;
+    border-radius:5px;
+  }
+
+  nav.links{display:flex; align-items:center; gap:34px;}
+  nav.links a{
+    font-size:14.5px; font-weight:500;
+    color:#fff;
+    position:relative;
+    padding:4px 0;
+  }
+  header.site-nav.scrolled nav.links a{ color:var(--ink-soft); }
+  nav.links a::after{
+    content:''; position:absolute; left:0; right:100%; bottom:-2px; height:1px;
+    background:var(--red); transition:right .25s ease;
+  }
+  nav.links a:hover::after{ right:0; }
+
+  .nav-cta{
+    background:var(--ink); color:#fff !important;
+    padding:10px 20px; border-radius:999px;
+    font-size:13.5px; font-weight:600;
+    letter-spacing:.02em;
+    transition:background .2s ease;
+  }
+  .nav-cta:hover{ background:var(--red); }
+
+  .nav-toggle{
+    display:none; background:none; border:none; cursor:pointer;
+    width:34px; height:34px; padding:0; position:relative;
+  }
+  .nav-toggle span{
+    position:absolute; left:5px; right:5px; height:2px; background:#fff; border-radius:2px;
+    transition:transform .25s ease, opacity .25s ease, background .25s ease;
+  }
+  header.site-nav.scrolled .nav-toggle span{ background:var(--ink); }
+  .nav-toggle span:nth-child(1){ top:11px; }
+  .nav-toggle span:nth-child(2){ top:19px; }
+  .nav-toggle span:nth-child(3){ top:27px; }
+  .nav-open .nav-toggle span:nth-child(1){ transform:translateY(8px) rotate(45deg); }
+  .nav-open .nav-toggle span:nth-child(2){ opacity:0; }
+  .nav-open .nav-toggle span:nth-child(3){ transform:translateY(-8px) rotate(-45deg); }
+
+  @media (max-width:900px){
+    nav.links{
+      position:fixed; top:0; right:0; height:100vh; width:min(320px,80vw);
+      background:var(--surface); flex-direction:column; align-items:flex-start;
+      padding:100px 32px 32px; gap:26px;
+      transform:translateX(100%); transition:transform .35s ease;
+      box-shadow:-10px 0 40px rgba(0,0,0,.15);
+    }
+    nav.links a{ color:var(--ink) !important; font-size:17px; }
+    nav.links a::after{ display:none; }
+    .nav-open nav.links{ transform:translateX(0); }
+    .nav-cta{ margin-top:10px; }
+    .nav-toggle{ display:block; }
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex; align-items:center;
+    overflow:hidden;
+    padding-top:120px;
+    padding-bottom:170px;
+  }
+  .hero-bg{
+    position:absolute; inset:0;
+    background:url('assets/hero.jpg') center 38% / cover no-repeat;
+  }
+  .hero-bg::after{
+    content:'';
+    position:absolute; inset:0;
+    background:
+      linear-gradient(180deg, rgba(20,17,15,.62) 0%, rgba(20,17,15,.38) 32%, rgba(20,17,15,.55) 68%, rgba(20,17,15,.82) 100%);
+  }
+  .hero-content{
+    position:relative; z-index:2;
+    max-width:var(--max); margin:0 auto; padding:0 32px;
+    width:100%;
+    text-align:center;
+    color:#fff;
+  }
+  @media (max-width:640px){ .hero-content{padding:0 20px;} }
+
+  .hero-mark{ width:30px; height:30px; margin:0 auto 22px; opacity:.92; }
+  .hero-mark img{ width:100%; height:100%; object-fit:contain; filter:brightness(0) invert(1); }
+
+  .hero-eyebrow{
+    color:rgba(255,255,255,.82);
+    font-size:14px; max-width:460px; margin:0 auto 26px;
+    line-height:1.5;
+  }
+
+  .hero h1{
+    font-size:clamp(34px, 6vw, 68px);
+    color:#fff;
+    max-width:920px; margin:0 auto;
+  }
+
+  .hero-sub{
+    max-width:560px; margin:26px auto 0;
+    color:rgba(255,255,255,.86);
+    font-size:16.5px; line-height:1.6;
+  }
+
+  .hero-cta{
+    display:inline-flex; align-items:center; gap:10px;
+    margin-top:36px;
+    background:rgba(255,255,255,.1);
+    border:1px solid rgba(255,255,255,.5);
+    color:#fff;
+    padding:15px 30px; border-radius:999px;
+    font-size:14.5px; font-weight:600; letter-spacing:.02em;
+    backdrop-filter:blur(6px);
+    transition:background .25s ease, border-color .25s ease, transform .25s ease;
+  }
+  .hero-cta:hover{ background:var(--red); border-color:var(--red); transform:translateY(-2px); }
+
+  /* floating quality cards */
+  .quality-row{
+    position:relative; z-index:3;
+    max-width:var(--max); margin:64px auto 0; padding:0 32px;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:18px;
+  }
+  @media (max-width:640px){ .quality-row{padding:0 20px;} }
+  @media (max-width:860px){ .quality-row{grid-template-columns:1fr; margin-top:40px;} }
+
+  .quality-card{
+    background:rgba(20,17,15,.46);
+    border:1px solid rgba(255,255,255,.16);
+    backdrop-filter:blur(14px);
+    border-radius:20px;
+    padding:26px 24px;
+    color:#fff;
+  }
+  .quality-card svg{ width:26px; height:26px; stroke:var(--red); margin-bottom:14px; }
+  .quality-card h3{
+    font-family:'Work Sans', sans-serif;
+    font-size:15.5px; font-weight:600; margin-bottom:8px; color:#fff;
+  }
+  .quality-card p{
+    font-size:13.5px; line-height:1.55; color:rgba(255,255,255,.78); margin:0;
+  }
+
+  .hero{ margin-bottom:0; }
+
+  /* ---------- SIGNATURE DIVIDER ---------- */
+  .divider{
+    display:flex; align-items:center; justify-content:center; gap:16px;
+    padding:56px 0 8px;
+  }
+  .divider .rule{ height:1px; width:56px; background:var(--line); }
+  .divider img{ width:16px; height:16px; opacity:.55; }
+
+  /* ---------- SECTION SHELLS ---------- */
+  section{ padding:70px 0; }
+  .section-head{ max-width:620px; margin:0 auto 46px; text-align:center; }
+  .section-head .eyebrow{ display:block; margin-bottom:12px; }
+  .section-head h2{ font-size:clamp(28px,4vw,40px); }
+  .section-head p{ margin-top:16px; color:var(--ink-soft); font-size:15.5px; line-height:1.6; }
+
+  .alt-bg{ background:var(--bg-alt); }
+
+  /* ---------- CATEGORIES ---------- */
+  .cat-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
+  }
+  @media (max-width:980px){ .cat-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:560px){ .cat-grid{grid-template-columns:1fr;} }
+
+  .cat-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:26px 22px;
+    cursor:pointer;
+    transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  }
+  .cat-card:hover{ transform:translateY(-4px); box-shadow:var(--shadow); border-color:transparent; }
+  .cat-card svg{ width:28px; height:28px; stroke:var(--ink); margin-bottom:16px; }
+  .cat-card:hover svg{ stroke:var(--red); }
+  .cat-card h3{
+    font-family:'Work Sans', sans-serif; font-weight:600; font-size:16px; margin-bottom:8px;
+  }
+  .cat-card p{ font-size:13.5px; color:var(--ink-soft); line-height:1.55; margin:0; }
+
+  /* ---------- GALLERY ---------- */
+  .filter-row{
+    display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:40px;
+  }
+  .filter-btn{
+    border:1px solid var(--line); background:var(--surface);
+    padding:9px 18px; border-radius:999px;
+    font-size:13.5px; font-weight:500; color:var(--ink-soft);
+    cursor:pointer; transition:all .2s ease;
+  }
+  .filter-btn:hover{ border-color:var(--red); color:var(--red); }
+  .filter-btn.active{ background:var(--ink); border-color:var(--ink); color:#fff; }
+
+  .gallery-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
+    min-height:120px;
+  }
+  @media (max-width:860px){ .gallery-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:560px){ .gallery-grid{grid-template-columns:1fr;} }
+
+  .gallery-item{
+    position:relative; border-radius:16px; overflow:hidden;
+    aspect-ratio:4/3; background:var(--bg-alt);
+  }
+  .gallery-item img{ width:100%; height:100%; object-fit:cover; transition:transform .5s ease; }
+  .gallery-item:hover img{ transform:scale(1.06); }
+  .gallery-caption{
+    position:absolute; left:0; right:0; bottom:0;
+    padding:14px 16px 12px;
+    background:linear-gradient(0deg, rgba(0,0,0,.62), transparent);
+    color:#fff; font-size:13.5px; font-weight:500;
+  }
+
+  .gallery-state{
+    text-align:center; color:var(--ink-faint); font-size:14.5px; padding:30px 0; grid-column:1/-1;
+  }
+
+  /* ---------- ABOUT ---------- */
+  .about-inner{
+    display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center;
+  }
+  @media (max-width:860px){ .about-inner{grid-template-columns:1fr; gap:30px;} }
+  .about-inner h2{ font-size:clamp(26px,3.6vw,36px); margin-bottom:20px; }
+  .about-inner p{ color:var(--ink-soft); font-size:15.5px; line-height:1.75; margin:0 0 16px; }
+  .about-visual{
+    aspect-ratio:1/1; border-radius:22px; overflow:hidden;
+  }
+  .about-visual img{ width:100%; height:100%; object-fit:cover; }
+
+  /* ---------- CONTACT ---------- */
+  .contact-inner{
+    display:grid; grid-template-columns:1.1fr .9fr; gap:50px;
+  }
+  @media (max-width:860px){ .contact-inner{grid-template-columns:1fr;} }
+  .contact-card{
+    background:var(--ink); color:#fff; border-radius:24px; padding:44px 40px;
+  }
+  .contact-card h2{ color:#fff; font-size:clamp(26px,3.4vw,34px); margin-bottom:14px; }
+  .contact-card p{ color:rgba(255,255,255,.72); font-size:15px; line-height:1.6; margin-bottom:30px; max-width:420px; }
+  .contact-links{ display:flex; flex-direction:column; gap:16px; }
+  .contact-links a{
+    display:flex; align-items:center; gap:12px;
+    font-size:15px; font-weight:500; color:#fff;
+    padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,.14);
+  }
+  .contact-links a svg{ width:19px; height:19px; stroke:var(--red); flex-shrink:0; }
+  .contact-links a:hover{ color:var(--red); }
+
+  .hours-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:24px; padding:36px 34px;
+  }
+  .hours-card h3{ font-family:'Work Sans',sans-serif; font-weight:600; font-size:15px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); margin-bottom:20px; }
+  .hours-row{ display:flex; justify-content:space-between; font-size:14.5px; padding:11px 0; border-bottom:1px solid var(--line); }
+  .hours-row span:last-child{ color:var(--ink-soft); }
+  .hours-row:last-child{ border-bottom:none; }
+
+  /* ---------- FOOTER ---------- */
+  footer{ padding:60px 0 34px; border-top:1px solid var(--line); }
+  .footer-top{
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:40px; margin-bottom:44px;
+  }
+  .footer-brand .logo-word{ color:var(--ink); }
+  .footer-brand p{ margin-top:14px; max-width:280px; color:var(--ink-soft); font-size:14px; line-height:1.6; }
+  .footer-cols{ display:flex; gap:60px; flex-wrap:wrap; }
+  .footer-col h4{
+    font-family:'Work Sans',sans-serif; font-size:13px; font-weight:600; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--ink-faint); margin-bottom:16px;
+  }
+  .footer-col a{ display:block; font-size:14px; color:var(--ink-soft); margin-bottom:11px; }
+  .footer-col a:hover{ color:var(--red); }
+  .footer-bottom{
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    padding-top:26px; border-top:1px solid var(--line);
+    font-size:13px; color:var(--ink-faint);
+  }
+
+  /* reveal on scroll */
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.in{ opacity:1; transform:none; }
+</style>
+</head>
+<body>
+
+<header class="site-nav" id="siteNav">
+  <div class="nav-inner">
+    <a href="#home" class="logo">
+      <img src="assets/icon.png" alt="Massif Cuisines">
+      <span class="logo-word">MASSIF<span class="logo-accent">Cuisines</span></span>
+    </a>
+    <nav class="links" id="navLinks">
+      <a href="#home">Accueil</a>
+      <a href="#categories">Catégories</a>
+      <a href="#realisations">Réalisations</a>
+      <a href="#atelier">L'Atelier</a>
+      <a href="#contact">Contact</a>
+      <a href="#contact" class="nav-cta">Demander un devis</a>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-mark"><img src="assets/icon.png" alt=""></div>
+    <p class="hero-eyebrow">Menuiserie sur mesure en bois massif — Oran, Algérie</p>
+    <h1>Du Bois <em>Massif</em>, Une Finition <em>Sans Compromis</em>.</h1>
+    <p class="hero-sub">Cuisines, portes, armoires, dressings et mobilier fabriqués à la main, pièce par pièce, pour durer toute une vie.</p>
+    <a href="#realisations" class="hero-cta">Découvrir nos réalisations</a>
+
+    <div class="quality-row">
+      <div class="quality-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v9l9 5 9-5V8"/><path d="M3 13l9 5 9-5"/></svg>
+        <h3>Bois Massif</h3>
+        <p>Sélectionné pour sa densité et sa tenue dans le temps, sans panneaux composites.</p>
+      </div>
+      <div class="quality-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L20 4"/><path d="M9 20l2-2M13 16l2-2M17 12l2-2"/><path d="M4 15l5 5"/></svg>
+        <h3>Sur Mesure</h3>
+        <p>Chaque pièce est pensée selon l'espace, les dimensions et les besoins réels du client.</p>
+      </div>
+      <div class="quality-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+        <h3>Finition Artisanale</h3>
+        <p>Ponçage, teinte et vernis appliqués à la main, sans raccourci de fabrication.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><span class="rule"></span><img src="assets/icon.png" alt=""><span class="rule"></span></div>
+
+<section id="categories">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Ce que nous fabriquons</span>
+      <h2>Nos Domaines d'Expertise</h2>
+      <p>Du sur-mesure en bois massif pour chaque pièce de la maison.</p>
+    </div>
+
+    <div class="cat-grid" id="catGrid">
+      <!-- cards injected below, static -->
+    </div>
+  </div>
+</section>
+
+<section id="realisations" class="alt-bg">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Nos réalisations</span>
+      <h2>Un Aperçu de Nos Projets</h2>
+      <p>Une sélection de réalisations récentes, par catégorie.</p>
+    </div>
+
+    <div class="filter-row" id="filterRow"></div>
+    <div class="gallery-grid" id="galleryGrid">
+      <p class="gallery-state">Chargement des réalisations…</p>
+    </div>
+  </div>
+</section>
+
+<section id="atelier">
+  <div class="wrap about-inner">
+    <div class="reveal">
+      <span class="eyebrow">L'atelier</span>
+      <h2>Fabriqué à la Main, Pensé pour Durer</h2>
+      <p>Massif Cuisines conçoit et fabrique du mobilier en bois massif pour la maison : cuisines, dressings, portes et rangements sur mesure.</p>
+      <p>Chaque commande est suivie pièce par pièce, du choix du bois à la pose finale, avec un souci constant du détail et de la solidité.</p>
+      <p>Nous travaillons directement avec chaque client pour adapter les dimensions, les finitions et les matériaux au projet exact — sans catalogue figé.</p>
+    </div>
+    <div class="about-visual reveal">
+      <img src="assets/hero.jpg" alt="Réalisation Massif Cuisines">
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="alt-bg">
+  <div class="wrap contact-inner">
+    <div class="contact-card reveal">
+      <h2>Un Projet en Tête ?</h2>
+      <p>Contactez-nous pour un devis gratuit et sans engagement. Nous répondons sous 24 à 48h.</p>
+      <div class="contact-links">
+        <!-- TODO Imad: remplace ces coordonnées par les vraies informations de contact -->
+        <a href="tel:+213000000000">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          +213 00 00 00 00
+        </a>
+        <a href="https://wa.me/213000000000" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-4.1-1.06L3 20l1.1-5.3A8.4 8.4 0 0 1 3 11.5 8.5 8.5 0 0 1 11.5 3a8.5 8.5 0 0 1 9.5 8.5z"/></svg>
+          WhatsApp — Demander un devis
+        </a>
+        <a href="mailto:contact@massif-cuisines.com">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 6l8 7 8-7"/></svg>
+          contact@massif-cuisines.com
+        </a>
+        <a href="#">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Oran, Algérie
+        </a>
+      </div>
+    </div>
+    <div class="hours-card reveal">
+      <h3>Horaires de l'atelier</h3>
+      <div class="hours-row"><span>Samedi — Jeudi</span><span>08:30 – 17:30</span></div>
+      <div class="hours-row"><span>Vendredi</span><span>Fermé</span></div>
+      <div class="hours-row"><span>Visite atelier</span><span>Sur rendez-vous</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <span class="logo-word"><img src="assets/icon.png" alt="" style="height:24px;display:inline-block;vertical-align:-4px;margin-right:6px;">MASSIF<span class="logo-accent">Cuisines</span></span>
+        <p>Menuiserie en bois massif, sur mesure — Oran, Algérie.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Catégories</h4>
+          <a href="#realisations" data-cat="cuisines">Les Cuisines</a>
+          <a href="#realisations" data-cat="portes-entree">Portes d'Entrée</a>
+          <a href="#realisations" data-cat="armoires">Armoires</a>
+          <a href="#realisations" data-cat="dressings">Dressings</a>
+        </div>
+        <div class="footer-col">
+          <h4>Site</h4>
+          <a href="#categories">Catégories</a>
+          <a href="#atelier">L'Atelier</a>
+          <a href="#contact">Contact</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Massif Cuisines. Tous droits réservés.</span>
+      <span>Site conçu sur mesure.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------------- CONFIG ---------------- */
+const SUPABASE_URL = 'https://jcbzxhmfwbqkzcbuoruc.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_KbaHv5-xEyzNA-2JS-V91g_r5bB-r-7';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const CATEGORIES = [
+  { value:'cuisines',        label:'Les Cuisines',            desc:"Cuisines équipées sur mesure, du plan de travail aux façades.",
+    icon:'<path d="M4 4h16v16H4z"/><path d="M4 12h16"/><path d="M9 4v8"/><circle cx="14" cy="16" r="1"/>' },
+  { value:'portes-entree',   label:"Portes d'Entrée",         desc:"Portes massives, sécurisées et à l'esthétique soignée.",
+    icon:'<path d="M5 21V5a2 2 0 0 1 2-2h6l6 4v14"/><path d="M5 21h14"/><circle cx="14" cy="12" r="1"/>' },
+  { value:'portes-chambres', label:'Portes de Chambres',      desc:"Portes intérieures ajustées à chaque ouverture.",
+    icon:'<rect x="6" y="3" width="12" height="18" rx="1"/><circle cx="15" cy="12" r="1"/>' },
+  { value:'armoires',        label:'Les Armoires',            desc:"Rangements sur mesure, optimisés au millimètre.",
+    icon:'<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M12 3v18"/><circle cx="9" cy="12" r="0.8"/><circle cx="15" cy="12" r="0.8"/>' },
+  { value:'dressings',       label:'Les Dressings',           desc:"Aménagements pensés pour l'organisation du quotidien.",
+    icon:'<path d="M4 7l8-4 8 4"/><path d="M4 7v13h16V7"/><path d="M9 10v3M15 10v3"/>' },
+  { value:'bureaux',         label:'Les Bureaux',             desc:"Espaces de travail sobres, fonctionnels et durables.",
+    icon:'<path d="M3 10h18"/><path d="M5 10V6a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v4"/><path d="M4 10v9M20 10v9"/>' },
+  { value:'salle-de-bain',   label:'Meubles de Salle de Bain', desc:"Meubles résistants à l'humidité, finitions raffinées.",
+    icon:'<rect x="3" y="12" width="18" height="7" rx="1"/><path d="M6 12V8a2 2 0 0 1 2-2h2"/><circle cx="17" cy="9" r="1"/>' },
+];
+
+/* ---------------- NAV ---------------- */
+const nav = document.getElementById('siteNav');
+const navToggle = document.getElementById('navToggle');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+});
+navToggle.addEventListener('click', () => {
+  document.body.classList.toggle('nav-open');
+});
+document.querySelectorAll('#navLinks a').forEach(a => {
+  a.addEventListener('click', () => document.body.classList.remove('nav-open'));
+});
+
+/* ---------------- CATEGORY CARDS ---------------- */
+const catGrid = document.getElementById('catGrid');
+catGrid.innerHTML = CATEGORIES.map(c => `
+  <div class="cat-card reveal" data-cat="${c.value}">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${c.icon}</svg>
+    <h3>${c.label}</h3>
+    <p>${c.desc}</p>
+  </div>
+`).join('');
+catGrid.querySelectorAll('.cat-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const cat = card.dataset.cat;
+    document.getElementById('realisations').scrollIntoView({behavior:'smooth'});
+    setTimeout(() => setActiveFilter(cat), 400);
+  });
+});
+
+/* ---------------- FILTER TABS ---------------- */
+const filterRow = document.getElementById('filterRow');
+filterRow.innerHTML = ['<button class="filter-btn active" data-cat="all">Tous</button>']
+  .concat(CATEGORIES.map(c => `<button class="filter-btn" data-cat="${c.value}">${c.label}</button>`))
+  .join('');
+
+let allItems = [];
+let currentFilter = 'all';
+
+function setActiveFilter(cat){
+  currentFilter = cat;
+  filterRow.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  renderGallery();
+}
+filterRow.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => setActiveFilter(btn.dataset.cat));
+});
+
+/* ---------------- GALLERY ---------------- */
+const galleryGrid = document.getElementById('galleryGrid');
+
+function renderGallery(){
+  const items = currentFilter === 'all' ? allItems : allItems.filter(i => i.category === currentFilter);
+  if (items.length === 0){
+    galleryGrid.innerHTML = `<p class="gallery-state">Aucune photo dans cette catégorie pour l'instant.</p>`;
+    return;
+  }
+  galleryGrid.innerHTML = items.map(i => `
+    <div class="gallery-item reveal in">
+      <img src="${i.image_url}" alt="${i.title || ''}" loading="lazy">
+      ${i.title ? `<div class="gallery-caption">${i.title}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+async function loadGallery(){
+  try{
+    const { data, error } = await sb
+      .from('gallery_items')
+      .select('*')
+      .order('sort_order', { ascending:true })
+      .order('created_at', { ascending:false });
+    if (error) throw error;
+    allItems = data || [];
+    renderGallery();
+  }catch(err){
+    console.error('Erreur de chargement des réalisations:', err);
+    galleryGrid.innerHTML = `<p class="gallery-state">Impossible de charger les réalisations pour le moment.</p>`;
+  }
+}
+loadGallery();
+
+/* ---------------- SCROLL REVEAL ---------------- */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold:0.15 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
